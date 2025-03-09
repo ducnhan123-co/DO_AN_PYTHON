@@ -67,23 +67,40 @@ class Game:
         if 'music' in self.audio:
             self.audio['music'].stop()
 
-        # ✅ Kiểm tra xem prank.wav đã được load vào self.audio chưa
+        # ✅ Phát nhạc prank nếu có
         if 'prank' in self.audio:
-            self.audio['prank'].play(loops=-1)  # Lặp vô hạn
+            self.audio['prank'].play(loops=-1)
         else:
             try:
-                game_over_sound = pygame.mixer.Sound('audio/prank.wav')  # Đúng đường dẫn
+                game_over_sound = pygame.mixer.Sound('audio/prank.wav')
                 game_over_sound.play(loops=-1)
             except Exception as e:
                 print(f"Lỗi phát nhạc game over: {e}")
 
-        # ✅ Hiển thị hình ảnh nền game over full màn hình
+    
+        prank_image = pygame.transform.scale(self.game_over_bg, (WINDOW_WIDTH-100, WINDOW_HEIGHT-100))  # Resize cho to lên hù dọa
+
+        # ✅ Vị trí giữa màn hình
+        center_x = (WINDOW_WIDTH // 2) - (prank_image.get_width() // 2)
+        center_y = (WINDOW_HEIGHT // 2) - (prank_image.get_height() // 2)
+
+        # ✅ Hiệu ứng rung (kéo dài 1.5 giây)
+        for _ in range(15):  # Lặp 15 lần (1.5 giây)
+            offset_x = random.randint(-10, 10)  # Rung trái phải
+            offset_y = random.randint(-10, 10)  # Rung lên xuống
+
+            self.display_surface.fill((0, 0, 0))  # Làm nền đen
+            self.display_surface.blit(prank_image, (center_x + offset_x, center_y + offset_y))
+            pygame.display.update()
+            pygame.time.delay(100)  # Delay 100ms mỗi lần rung
+
+        # ✅ Sau khi rung xong, hiện ảnh game over
         game_over_resized = pygame.transform.scale(self.game_over_bg, (WINDOW_WIDTH, WINDOW_HEIGHT))
         self.display_surface.blit(game_over_resized, (0, 0))
 
         # ✅ Hiển thị chữ "Bạn thua rồi!"
         font = pygame.font.Font(None, 64)
-        text = font.render("BẠN THUA RỒI!!!!!!!!!!!!!!!!!!!!!!", True, (255, 0, 0))
+        text = font.render("Bạn thua rồi!", True, (255, 0, 0))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.display_surface.blit(text, text_rect)
 

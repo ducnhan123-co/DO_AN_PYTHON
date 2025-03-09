@@ -34,8 +34,9 @@ class Worm(AnimatedSprite):
 
 
 class Player(AnimatedSprite):
-    def __init__(self, pos, groups, collision_sprites, frames):
+    def __init__(self, pos, groups, collision_sprites, frames,game):
         super().__init__(frames, pos,groups)
+        self.game = game
         self.flip = False # biến canh để nhân vật qua left or right
 
         # movement and collision
@@ -48,7 +49,8 @@ class Player(AnimatedSprite):
         self.can_shoot= False
         # self.all_sprites = groups
         self.last_shot = 0
-
+        self.fall_timer = 0
+    
     # Kiểm tra phím bấm để điều khiển nhân vật.
     def inp(self):
         keys = pygame.key.get_pressed()
@@ -126,6 +128,13 @@ class Player(AnimatedSprite):
         self.move(dt)
         self.animate(dt)
 
+
+        if not self.on_floor and self.direction.y > 0 and self.rect.top > WINDOW_HEIGHT:
+            self.fall_timer += dt  # Tăng thời gian rơi
+            if self.fall_timer >= 2:  # Nếu rơi hơn 3 giây
+                self.game.game_over()  # Gọi hàm kết thúc trò chơi
+        else:
+            self.fall_timer = 0  # Reset nếu không rơi
 
 
 

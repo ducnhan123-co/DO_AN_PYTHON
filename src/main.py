@@ -41,7 +41,7 @@ class Game:
         self.worm_frames = import_folder('images', 'enemies', 'worm')
         # Tải hình nền
         self.background = pygame.image.load('data/graphics/Background.png').convert() #hình nên chính khi chơi
-        self.game_over_bg = pygame.image.load('data/graphics/prank.jpg').convert() #hình nền khi thua :))
+        self.game_over_bg = pygame.image.load('data/graphics/Background.png').convert() #hình nền khi thua :))
 
         # Tải âm thanh chính
         self.audio = import_audio('audio')

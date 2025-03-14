@@ -35,7 +35,7 @@ class Game:
         self.setup()
 
         # Tạo bộ đếm thời gian để canh chỉnh thơi gian ong respawn
-        self.bee_timer = Timer(500, func=self.create_bee, autostart=True, repeat=True)
+        self.bee_timer = Timer(1000, func=self.create_bee, autostart=True, repeat=True)
 
     def load_assets(self):
         # Tải các tài nguyên đồ họa

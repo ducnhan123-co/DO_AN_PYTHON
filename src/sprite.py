@@ -211,9 +211,9 @@ class Player(AnimatedSprite):
         self.move(dt)
         self.animate(dt)
         # Kiểm tra rơi khỏi màn hình
-        if not self.on_floor and self.direction.y > 0 and self.rect.top > WINDOW_HEIGHT:
+        if not self.on_floor > 0 and self.rect.top > WINDOW_HEIGHT:
             self.fall_timer += dt  # Tăng thời gian rơi
-            if self.fall_timer >= 4:  # Nếu rơi hơn 3 giây
+            if self.direction.y > 0 and self.fall_timer >= 3:  # Nếu rơi hơn 3 giây
                 self.game.game_over()  # Gọi hàm kết thúc trò chơi
         else:
             self.fall_timer = 0  # Reset nếu không rơi

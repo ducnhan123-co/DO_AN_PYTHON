@@ -48,7 +48,7 @@ class Game:
 
         # Tải âm thanh chính
         self.audio = import_audio('audio')
-        self.audio['music'].play(loops=-1)
+        self.audio['ni_idea'].play(loops=-1)
 
     def setup(self):
         # Tải bản đồ và tính toán kích thước level

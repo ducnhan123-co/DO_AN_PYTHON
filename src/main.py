@@ -19,6 +19,10 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
 
+        # Vị trí X của background
+        self.bg_x = 0  
+        self.bg_speed = 100  # Tốc độ di chuyển của background (pixel/giây)
+
         # Tạo các nhóm sprite,mấy cái nhân vật đồ
         self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
@@ -160,6 +164,18 @@ class Game:
                 self.display_surface.blit(self.background, (0, 0))
             else:
                 self.display_surface.fill(BG_COLOR)
+
+            # Cập nhật vị trí background
+            self.bg_x -= self.bg_speed * dt  
+
+            # Nếu background cuộn hết, reset lại vị trí
+            if self.bg_x <= -WINDOW_WIDTH:
+                self.bg_x = 0  
+
+            # Vẽ background (lặp lại background để tạo hiệu ứng vô hạn)
+            self.display_surface.blit(self.background, (self.bg_x, 0))
+            self.display_surface.blit(self.background, (self.bg_x + WINDOW_WIDTH, 0))  # Background lặp lại
+
             # Vẽ tất cả các sprite
             self.all_sprites.draw(self.player.rect.center)
             pygame.display.update()

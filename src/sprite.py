@@ -188,12 +188,17 @@ class Player(AnimatedSprite):
         self.on_floor = True if bottom_rect.collidelist(level_rects) >= 0 else False
 
     def animate(self, dt):
-        if self.direction.x:
+        if not self.on_floor:  # Nếu đang nhảy
+            self.flip = self.direction.x < 0 if self.direction.x else self.flip  # Cập nhật hướng xoay khi di chuyển
+            self.image = self.frames[-2]  # Dùng frame cố định khi nhảy
+        elif self.direction.x:  # Nếu đang di chuyển trên mặt đất
             self.frames_index += self.annotation_speed * dt
-            self.flip = self.direction.x < 0 # qua phải thì true trái thì false
-        else:
+            self.flip = self.direction.x < 0  # Cập nhật hướng xoay
+            self.image = self.frames[int(self.frames_index) % len(self.frames)]
+        else:  # Nếu đứng yên trên mặt đất
             self.frames_index = 0
-        self.image = self.frames[int(self.frames_index) % len(self.frames)]
+            self.image = self.frames[0]
+
         self.image = pygame.transform.flip(self.image, self.flip, False)
 
     def update(self, dt):

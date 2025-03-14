@@ -52,7 +52,10 @@ class Game:
 
         # Tải âm thanh chính
         self.audio = import_audio('audio')
-        self.audio['ni_idea'].play(loops=-1)
+        if 'game_menu' in self.audio:
+            self.audio['game_menu'].stop()
+        # Phát nhạc cho game
+        self.audio['music'].play(loops=-1)
 
     def setup(self):
         # Tải bản đồ và tính toán kích thước level
@@ -71,7 +74,7 @@ class Game:
         # Tạo các đối tượng từ layer Entities: Player và Worm 
         for obj in tmx_map.get_layer_by_name('Entities'): #nhân vật chính game
             if obj.name == 'Player':
-                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames, self)
+                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames, self,self.audio)
             elif obj.name == 'Worm': #mấy con quái
                 Worm(self.worm_frames, pygame.Rect(obj.x, obj.y, obj.width, obj.height), (self.all_sprites, self.enemy_sprites))
         
@@ -88,6 +91,8 @@ class Game:
             speed=randint(250, 500)
         )
 
+
+#chưa dùng
     def create_bullet(self, pos, direction):
         # Tính vị trí spawn của đạn dựa theo hướng
         if direction == 1:
@@ -98,6 +103,7 @@ class Game:
         Bullet(self.bullet_surf, (x, pos[1]), direction, (self.all_sprites, self.bullet_sprites))
         Fire(self.fire_surf, pos, self.all_sprites, self.player)
         self.audio['shoot'].play()
+
 
     def collision(self):
         # Xử lý va chạm giữa đạn và kẻ thù
@@ -141,7 +147,7 @@ class Game:
         game_over_resized = pygame.transform.scale(self.game_over_bg, (WINDOW_WIDTH, WINDOW_HEIGHT))
         self.display_surface.blit(game_over_resized, (0, 0))
         font = pygame.font.Font(None, 64)
-        text = font.render("BẠN THUA RỒI !!!!!!!!!!!!!!!!!!!!!!!!!!!", True, (255, 0, 0))
+        text = font.render("THUA NHA CON !!!!!!", True, (255, 0, 0))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.display_surface.blit(text, text_rect)
         pygame.display.update()
@@ -186,6 +192,8 @@ if __name__ == '__main__':
         choice = menu_game.menu_game()  # Gọi menu và lấy lựa chọn từ người chơi
 
         if choice == "play":
+            pygame.mixer.stop()  # Dừng tất 
+
             game = Game()  # Khởi động game
             game.run()
         elif choice == "settings":

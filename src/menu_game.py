@@ -1,6 +1,6 @@
 import pygame  # Đảm bảo import pygame trước khi dùng
 from settings import *
-
+from support import *
 # Khởi tạo pygame
 pygame.init()  # Cần gọi trước khi tạo cửa sổ game
 
@@ -28,7 +28,9 @@ try:
 except pygame.error as e:
     print(f"Lỗi khi load ảnh background: {e}")
     background = None  # Gán None nếu load ảnh thất bại
-
+audio = import_audio('audio')
+if 'game_menu' in audio:
+    audio['game_menu'].play(loops=-1)  # Phát nhạc menu lặp vô hạn chỉ 1 lần
 # Vẽ 
 def draw_menu():
     """Vẽ menu lên màn hình"""

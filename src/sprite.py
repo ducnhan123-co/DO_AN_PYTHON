@@ -3,7 +3,7 @@ from timer import Timer
 from math import sin
 from random import randint
 import pygame
-
+from support import *
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
         super().__init__(groups)
@@ -119,9 +119,10 @@ class Worm(Enemy):
             self.frames = [pygame.transform.flip(surf, True, False) for surf in self.frames]
 
 class Player(AnimatedSprite):
-    def __init__(self, pos, groups, collision_sprites, frames, game):
+    def __init__(self, pos, groups, collision_sprites, frames, game,audio):
         super().__init__(frames, pos, groups)
         self.game = game
+        self.audio=audio
         self.flip = False # biến canh để nhân vật qua left or right
         self.direction = pygame.Vector2()
         self.collision_sprites = collision_sprites
@@ -154,6 +155,7 @@ class Player(AnimatedSprite):
 
     def shoot(self):
         bullet_direction = -1 if self.flip else 1
+        self.audio['shoot_2'].play()
         Bullet(self.rect.center, bullet_direction, self.groups(),self.collision_sprites)
 
     def move(self, dt):

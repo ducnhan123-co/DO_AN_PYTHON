@@ -45,7 +45,7 @@ class Game:
         self.bee_frames = import_folder('images', 'enemies', 'bee')
         self.worm_frames = import_folder('images', 'enemies', 'worm')
         # Tải hình nền
-        self.background = pygame.image.load('data/graphics/tilesetOpenGameBackground.png').convert() #hình nên chính khi chơi
+        self.background = pygame.image.load('data/graphics/Summer2.png').convert() #hình nên chính khi chơi
         self.background = pygame.transform.scale(self.background, (WINDOW_WIDTH, WINDOW_HEIGHT))
         self.display_surface.blit(self.background, (0, 0))  # Vẽ background cố định
         self.game_over_bg = pygame.image.load('data/graphics/tilesetOpenGameBackground.png').convert() #hình nền khi thua :))

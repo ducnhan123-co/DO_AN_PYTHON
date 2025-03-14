@@ -1,3 +1,4 @@
+import menu_game
 from settings import *
 from sprite import *
 from groups import *
@@ -40,8 +41,10 @@ class Game:
         self.bee_frames = import_folder('images', 'enemies', 'bee')
         self.worm_frames = import_folder('images', 'enemies', 'worm')
         # Tải hình nền
-        self.background = pygame.image.load('data/graphics/Background.png').convert() #hình nên chính khi chơi
-        self.game_over_bg = pygame.image.load('data/graphics/Background.png').convert() #hình nền khi thua :))
+        self.background = pygame.image.load('data/graphics/tilesetOpenGameBackground.png').convert() #hình nên chính khi chơi
+        self.background = pygame.transform.scale(self.background, (WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.display_surface.blit(self.background, (0, 0))  # Vẽ background cố định
+        self.game_over_bg = pygame.image.load('data/graphics/tilesetOpenGameBackground.png').convert() #hình nền khi thua :))
 
         # Tải âm thanh chính
         self.audio = import_audio('audio')
@@ -163,6 +166,14 @@ class Game:
         pygame.quit()
 
 if __name__ == '__main__':
-    # Tạo instance của Game và bắt đầu game
-    game = Game()  
-    game.run()
+    while True:
+        choice = menu_game.menu_game()  # Gọi menu và lấy lựa chọn từ người chơi
+
+        if choice == "play":
+            game = Game()  # Khởi động game
+            game.run()
+        elif choice == "settings":
+            print("Chưa có cài đặt, cần thêm menu_settings.py")
+        elif choice == "exit":
+            print("Thoát game.")
+            break  # Dừng chương trình 

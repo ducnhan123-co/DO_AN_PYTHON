@@ -20,6 +20,10 @@ font = pygame.font.Font(None, 50)
 menu_items = ["Play", "Settings", "Exit"]
 selected_index = 0  # Chỉ mục đang chọn
 
+# Vị trí X của background
+bg_x = 0  
+bg_speed = 100  # Tốc độ di chuyển của background (pixel/giây)
+
 # Load background
 try:
     background = pygame.image.load("data/graphics/tilesetOpenGameBackground.png")
@@ -31,12 +35,24 @@ except pygame.error as e:
 audio = import_audio('audio')
 if 'game_menu' in audio:
     audio['game_menu'].play(loops=-1)  # Phát nhạc menu lặp vô hạn chỉ 1 lần
+
 # Vẽ 
 def draw_menu():
-    """Vẽ menu lên màn hình"""
+    """Vẽ menu lên màn hình với background di chuyển từ trái sang phải."""
+    global bg_x
+    
     screen.fill(WHITE)  # Xóa màn hình trước khi vẽ lại menu
     if background:
-        screen.blit(background, (0, 0))  # Chỉ vẽ background nếu load thành công
+        # Cập nhật vị trí background
+        bg_x += bg_speed * (1 / FRAMERATE)  # Di chuyển sang phải
+
+        # Nếu background cuộn hết, reset lại vị trí
+        if bg_x >= WINDOW_WIDTH:
+            bg_x = 0
+
+        # Vẽ background hai lần để tạo hiệu ứng cuộn liên tục
+        screen.blit(background, (bg_x, 0))
+        screen.blit(background, (bg_x - WINDOW_WIDTH, 0))  # Background thứ hai nằm bên trái
 
     for i, text in enumerate(menu_items):
         color = BLUE if i == selected_index else BLACK

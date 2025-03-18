@@ -1,4 +1,3 @@
-import menu_game
 from settings import *
 from sprite import *
 from groups import *
@@ -147,7 +146,7 @@ class Game:
         game_over_resized = pygame.transform.scale(self.game_over_bg, (WINDOW_WIDTH, WINDOW_HEIGHT))
         self.display_surface.blit(game_over_resized, (0, 0))
         font = pygame.font.Font(None, 64)
-        text = font.render("THUA NHA CON !!!!!!", True, (255, 0, 0))
+        text = font.render("GAME OVER MY FRIEND!!!!!!", True, (255, 0, 0))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.display_surface.blit(text, text_rect)
         pygame.display.update()
@@ -187,17 +186,17 @@ class Game:
             pygame.display.update()
         pygame.quit()
 
-if __name__ == '__main__':
-    while True:
-        choice = menu_game.menu_game()  # Gọi menu và lấy lựa chọn từ người chơi
+# if __name__ == '__main__':
+#     while True:
+#         choice = menu_game.menu_game()  # Gọi menu và lấy lựa chọn từ người chơi
 
-        if choice == "play":
-            pygame.mixer.stop()  # Dừng tất 
+#         if choice == "play":
+#             pygame.mixer.stop()  # Dừng tất 
 
-            game = Game()  # Khởi động game
-            game.run()
-        elif choice == "settings":
-            print("Chưa có cài đặt, cần thêm menu_settings.py")
-        elif choice == "exit":
-            print("Thoát game.")
-            break  # Dừng chương trình 
+#             game = Game()  # Khởi động game
+#             game.run()
+#         elif choice == "settings":
+#             print("Chưa có cài đặt, cần thêm menu_settings.py")
+#         elif choice == "exit":
+#             print("Thoát game.")
+#             break  # Dừng chương trình 

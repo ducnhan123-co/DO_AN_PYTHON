@@ -4,8 +4,11 @@ from menu_game import *  # Import menu và màn hình credits
 
 def main():
     pygame.init()  # Khởi tạo pygame
+    # Khởi tạo màn hình
+    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pygame.display.set_caption("Menu Game")
     selected_index = 0  
-    hover_index = None  # Thêm biến lưu hover
+    hover_index = 0  # Thêm biến lưu hover
 
     current_scene = "menu"  # Bắt đầu với menu
 
@@ -20,8 +23,8 @@ def main():
             current_scene = "menu"  # Quay lại menu sau khi chơi xong
 
         elif current_scene == "settings":
-            print("Chưa có cài đặt, cần thêm setting")
-            current_scene = "menu"
+            settings = MenuSettings(GameMenu().background) # Hiển thị settings
+            current_scene = settings.run()
 
         elif current_scene == "credits":
             credits = CreditsScene()  # Hiển thị màn hình credits

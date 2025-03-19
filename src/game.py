@@ -4,6 +4,7 @@ from groups import *
 from support import *
 from timer import Timer
 from powerup import PowerUp
+from powerup import LaserPowerUp
 import pygame
 from os.path import join
 from pytmx.util_pygame import load_pygame
@@ -80,7 +81,9 @@ class Game:
         # Sinh ra một năng lực ngẫu nhiên chạm vào là biến mất và bắn bằng SPACE được
         PowerUp((randint(50, WINDOW_WIDTH - 50), randint(50, WINDOW_HEIGHT - 50)), 
                 (self.all_sprites, self.collision_sprites, self.powerups))
-
+        
+        LaserPowerUp((randint(50, WINDOW_WIDTH - 50), randint(50, WINDOW_HEIGHT - 50)), 
+                 (self.all_sprites, self.collision_sprites, self.powerups))
     def create_bee(self):
         # Tạo một con Bee mới và thêm vào các nhóm sprite
         Bee(
@@ -183,6 +186,9 @@ class Game:
 
             # Vẽ tất cả các sprite
             self.all_sprites.draw(self.player.rect.center)
+            if self.player.laser_active:
+                self.player.draw_laser(self.display_surface)
+        
             pygame.display.update()
         pygame.quit()
 

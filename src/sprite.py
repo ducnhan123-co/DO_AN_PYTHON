@@ -4,6 +4,7 @@ from math import sin
 from random import randint
 import pygame
 from support import *
+from powerup import *
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
         super().__init__(groups)
@@ -133,12 +134,50 @@ class Player(AnimatedSprite):
         self.can_shoot = False
         self.fall_timer = 0
         self.last_shot = 0
+
+        self.laser_active = False
+        self.laser_timer = None
+
+    def activate_laser(self):
+        self.laser_active = True
+        # Bật hiệu ứng laser trong 5000ms (5 giây)
+        self.laser_timer = Timer(5000, func=self.deactivate_laser, autostart=True)
+
+    def deactivate_laser(self):
+        self.laser_active = False
+
+    def draw_laser(self, surface):
+        if not self.laser_active:
+            return
+        # Lấy offset từ camera (được tính trong AllSprites.draw)
+        offset = self.game.all_sprites.offset
+        # Vị trí nhân vật trên màn hình
+        start_pos = (self.rect.centerx + offset.x, self.rect.centery + offset.y)
+        # Lấy vị trí chuột (trong tọa độ màn hình)
+        mouse_pos = pygame.mouse.get_pos()
+        # Tính vector từ start_pos đến vị trí chuột
+        dx = mouse_pos[0] - start_pos[0]
+        dy = mouse_pos[1] - start_pos[1]
+        length = math.hypot(dx, dy)
+        if length == 0:
+            length = 1
+        dx /= length
+        dy /= length
+        # Độ dài của laser (có thể điều chỉnh)
+        laser_length = 600
+        end_pos = (start_pos[0] + dx * laser_length, start_pos[1] + dy * laser_length)
+        # Vẽ đường laser
+        pygame.draw.line(surface, (255, 0, 0), start_pos, end_pos, 5)
        
 
     def check_collision_with_powerup(self, powerups):
         collided_powerups = pygame.sprite.spritecollide(self, powerups, True)
-        if collided_powerups:
-            self.can_shoot = True
+        for power in collided_powerups:
+            # Kiểm tra nếu là LaserPowerUp thì kích hoạt chế độ laser
+            if isinstance(power, LaserPowerUp):
+                self.activate_laser()
+            else:
+                self.can_shoot = True
 
     def inp(self):
         keys = pygame.key.get_pressed()
@@ -205,15 +244,18 @@ class Player(AnimatedSprite):
 
     def update(self, dt):
         self.shoot_timer.update()
+        # Cập nhật timer của laser nếu đang hoạt động
+        if self.laser_active and self.laser_timer:
+            self.laser_timer.update()
         self.check_on_floor()
         self.check_collision_with_powerup(self.game.powerups)
         self.inp()
         self.move(dt)
         self.animate(dt)
-        # Kiểm tra rơi khỏi màn hình
+        # Kiểm tra rơi khỏi màn hình (code đã có)
         if not self.on_floor > 0 and self.rect.top > WINDOW_HEIGHT:
-            self.fall_timer += dt  # Tăng thời gian rơi
-            if self.direction.y > 0 and self.fall_timer >= 3:  # Nếu rơi hơn 3 giây
-                self.game.game_over()  # Gọi hàm kết thúc trò chơi
+            self.fall_timer += dt
+            if self.direction.y > 0 and self.fall_timer >= 3:
+                self.game.game_over()
         else:
-            self.fall_timer = 0  # Reset nếu không rơi
+            self.fall_timer = 0

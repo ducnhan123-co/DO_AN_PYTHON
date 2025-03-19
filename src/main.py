@@ -1,6 +1,6 @@
 import pygame
 from game import Game  # Import class Game từ game.py
-from menu_game import *  # Import menu và màn hình credits
+from scenes import *  # Import các scenes 
 
 def main():
     pygame.init()  # Khởi tạo pygame
@@ -9,7 +9,7 @@ def main():
     pygame.display.set_caption("Menu Game")
     selected_index = 0  
     hover_index = 0  # Thêm biến lưu hover
-
+    
     current_scene = "menu"  # Bắt đầu với menu
 
     while True:
@@ -23,7 +23,7 @@ def main():
             current_scene = "menu"  # Quay lại menu sau khi chơi xong
 
         elif current_scene == "settings":
-            settings = MenuSettings(GameMenu().background) # Hiển thị settings
+            settings = MainSettings(GameMenu().background) # Hiển thị settings
             current_scene = settings.run()
 
         elif current_scene == "credits":

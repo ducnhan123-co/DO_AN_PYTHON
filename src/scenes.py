@@ -94,13 +94,55 @@ class Button:
         mouse_x, mouse_y = pygame.mouse.get_pos()
         return self.rect.collidepoint(mouse_x, mouse_y) #Kiểm tra xem tọa độ chuột có nằm trong hình chữ nhật self.rect không.
 
+import pygame
+
+class TransitionScene:
+    def __init__(self, screen, duration=500):
+        """Tạo hiệu ứng chuyển cảnh kèm màn hình Loading"""
+        self.screen = screen
+        self.duration = duration  # Thời gian fade (ms)
+        self.clock = pygame.time.Clock()
+
+        # Load font từ thư mục dự án
+        self.loading_font = pygame.font.Font("data/font/8-BIT WONDER.TTF", 30)  # Font Loading
+
+    def fade(self, direction="out"):
+        """Thực hiện hiệu ứng fade-in hoặc fade-out"""
+        fade_surface = pygame.Surface(self.screen.get_size())
+        fade_surface.fill((0, 0, 0))
+
+        step = 10  # Bước alpha (mượt hơn)
+        alpha_range = range(0, 256, step) if direction == "out" else range(255, -1, -step)
+
+        for alpha in alpha_range:
+            fade_surface.set_alpha(alpha)
+            self.screen.blit(fade_surface, (0, 0))
+            pygame.display.update()
+            self.clock.tick(100)
+
+    def draw_loading_screen(self):
+        """Vẽ màn hình Loading trước khi fade-in"""
+        self.screen.fill((0, 0, 0))  # Nền đen
+        loading_text = self.loading_font.render("* Loading", True, (200, 200, 200))
+        self.screen.blit(loading_text, (20, 10))  # Hiển thị Loading ở góc trái trên cùng
+        pygame.display.update()  # Cập nhật màn hình ngay
+
+    def fade_out_in_with_loading(self):
+        """Chuyển cảnh với hiệu ứng mờ dần + màn hình Loading"""
+        self.fade("out")  # Fade-out trước
+        self.draw_loading_screen()  # Hiển thị màn hình Loading ngay khi tối hoàn toàn
+        pygame.time.delay(1500)  # Chờ 1.5s để Loading
+        self.fade("in")  # Fade-in để vào màn hình tiếp theo
+
+
 # Màn hình chính
 class GameMenu:
     def __init__(self, selected_index=0, hover_index=0):
+        self.transition = TransitionScene(screen)
         self.selected_index = selected_index  # Chỉ số nút được chọn bằng phím (trạng thái)
         self.hover_index = hover_index if hover_index is not None else selected_index  # Giữ nguyên trạng thái hover (màu)
         # Thiết lập hình nền trượt
-        self.bg_x = 0  # Vị trí hiện tại của nền
+        self.bg_x = 0  # Vị trí hiện tại của nền3
         self.bg_speed = 100 # Tốc độ di chuyển của nền
         self.background = background
 
@@ -166,7 +208,16 @@ class GameMenu:
                         self.selected_index = (self.selected_index - 1) % len(self.buttons)
                         self.hover_index = self.selected_index 
                     elif event.key == pygame.K_RETURN:
-                        return ["play", "settings", "credits", "exit"][self.selected_index], self.selected_index, self.hover_index  # Trả về hover
+                        selected_option = ["play", "settings", "credits", "exit"][self.selected_index]
+                        
+                        if selected_option == "exit":
+                            pygame.quit()  # Thoát game ngay lập tức
+                            return "exit", self.selected_index, self.hover_index  # Giữ 3 giá trị
+                        elif selected_option == "play":
+                            self.transition.fade_out_in_with_loading()  # Hiệu ứng chỉ áp dụng khi không phải "Exit"
+                            return selected_option, self.selected_index, self.hover_index
+                        else: 
+                            return selected_option, self.selected_index, self.hover_index
 
                 # Xử lý hover bằng chuột: Nếu chuột di chuyển vào nút, cập nhật hover_index và selected_index.
                 elif event.type == pygame.MOUSEMOTION:
@@ -179,7 +230,16 @@ class GameMenu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     for i, button in enumerate(self.buttons):
                         if button.is_clicked():
-                            return ["play", "settings", "credits", "exit"][i], i, i
+                            selected_option = ["play", "settings", "credits", "exit"][self.selected_index]
+                        
+                            if selected_option == "exit":
+                                pygame.quit()  # Thoát game ngay lập tức
+                                return "exit", self.selected_index, self.hover_index  # Giữ 3 giá trị
+                            elif selected_option == "play":
+                                self.transition.fade_out_in_with_loading()  # Hiệu ứng chỉ áp dụng khi không phải "Exit"
+                                return selected_option, self.selected_index, self.hover_index
+                            else:
+                                return selected_option, self.selected_index, self.hover_index
         return "menu", self.selected_index, self.hover_index  # Trả về trạng thái
 
 # Lớp hiển thị credits

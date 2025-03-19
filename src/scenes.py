@@ -7,6 +7,7 @@ pygame.init()
 
 # Khởi tạo màn hình
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+screen_rect = screen.get_rect()
 pygame.display.set_caption("Menu Game")
 
 # Màu
@@ -36,7 +37,7 @@ audio = import_audio('audio')
 if 'ni_idea' in audio:
     audio['ni_idea'].play(loops=-1)
 
-# Khởi tạo biến toàn cục để xử lý lưu trạng thái ON/OFF của MenuSettings
+# Khởi tạo biến toàn cục để xử lý lưu trạng thái ON/OFF của MainSettings
 game_settings = {
     "MUSIC": "ON",
     "SOUND EFFECTS": "ON"
@@ -105,10 +106,10 @@ class GameMenu:
 
         # Tạo danh sách nút, font chữ màu xanh dương khi chuột hover lên
         self.buttons = [
-            Button("Play", WINDOW_WIDTH // 2 - 150, 250, 300, 70, BLACK, (0,0,255), menu_font),
-            Button("Settings", WINDOW_WIDTH // 2 - 150, 330, 300, 70, BLACK, (0,0,255), menu_font),
-            Button("Credits", WINDOW_WIDTH // 2 - 150, 410, 300, 70, BLACK, (0,0,255), menu_font),
-            Button("Exit", WINDOW_WIDTH // 2 - 150, 490, 300, 70, BLACK, (0,0,255), menu_font)
+            Button("Play", WINDOW_WIDTH // 2 - 167, 250, 320, 70, BLACK, (0,0,255), menu_font),
+            Button("Settings", WINDOW_WIDTH // 2 - 167, 330, 320, 70, BLACK, (0,0,255), menu_font),
+            Button("Credits", WINDOW_WIDTH // 2 - 167, 410, 320, 70, BLACK, (0,0,255), menu_font),
+            Button("Exit", WINDOW_WIDTH // 2 - 167, 490, 320, 70, BLACK, (0,0,255), menu_font)
         ]
 
     def draw(self):
@@ -122,8 +123,11 @@ class GameMenu:
             screen.blit(self.background, (self.bg_x, 0))
             screen.blit(self.background, (self.bg_x - WINDOW_WIDTH, 0))
 
+        # Vẽ khung bo tròn cho tiêu đề game
+        title_x, title_y, title_w, title_h = WINDOW_WIDTH // 2 - 477, 65, 970, 120
+        pygame.draw.rect(screen, (0, 0, 120), (title_x, title_y, title_w, title_h), border_radius=25)  # Khung bo tròn
         # Tiêu đề game màu xanh đậm với hiệu ứng phát sáng
-        draw_glow_text("SPACE RUNNER", title_font, (0,0,128), WINDOW_WIDTH // 2 - 445, 80)
+        draw_glow_text("SPACE RUNNER", title_font, (0,0,200), WINDOW_WIDTH // 2 - 445, 80)
 
         # Hiển thị các nút
         """
@@ -133,6 +137,12 @@ class GameMenu:
         for i, button in enumerate(self.buttons):
             is_selected = (i == self.selected_index) or (i == self.hover_index)
             text_color = button.hover_color if is_selected else button.base_color
+
+            # Vẽ khung bo tròn xung quanh nút
+            # button_x, button_y, button_w, button_h = button.x, button.y, button.width, button.height
+            # rect_color = (0, 20, 150) if is_selected else (0, 20, 170)  # Màu khác khi hover
+            # pygame.draw.rect(screen, rect_color, (button_x, button_y, button_w, button_h), border_radius=15)
+            
             button.draw(screen, text_color)
 
         pygame.display.flip()
@@ -223,7 +233,7 @@ class CreditsScene:
                     if event.key == pygame.K_ESCAPE:
                         return "menu"
 
-class MenuSettings:
+class MainSettings:
     def __init__(self, background):
         global game_settings  # Dùng biến toàn cục
         self.settings = [("MUSIC", game_settings["MUSIC"]), ("SOUND EFFECTS", game_settings["SOUND EFFECTS"]), ("BACK", "")]
@@ -277,39 +287,63 @@ class MenuSettings:
 
     def run(self):
         """Vòng lặp màn hình settings"""
+        # Khai báo các thông số vị trí UI để dùng chung
         running = True
+        box_x = WINDOW_WIDTH // 2 - 300
+        box_width = 600
+        box_height = 60
+        spacing = 80  # Khoảng cách giữa các ô
+        
         while running:
             self.draw()
+            mouse_x, mouse_y = pygame.mouse.get_pos()  # Lấy vị trí chuột
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     return "exit"
+
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
+                        # Di chuyển lên trong danh sách settings
                         self.selected_index = (self.selected_index - 1) % len(self.settings)
                     elif event.key == pygame.K_DOWN:
+                        # Di chuyển xuống trong danh sách settings
                         self.selected_index = (self.selected_index + 1) % len(self.settings)
                     elif event.key == pygame.K_RETURN:
+                        # Xử lý khi nhấn Enter để chọn setting
                         selected_option = self.settings[self.selected_index][0]
+                        # Nếu chọn MUSIC hoặc SOUND EFFECTS, bật/tắt ON-OFF
                         if selected_option in ["MUSIC", "SOUND EFFECTS"]:
                             new_value = "OFF" if self.settings[self.selected_index][1] == "ON" else "ON"
                             self.settings[self.selected_index] = (selected_option, new_value)
                             game_settings[selected_option] = new_value  # Lưu lại trạng thái
                         elif selected_option == "BACK":
                             return "menu"
+
+                elif event.type == pygame.MOUSEMOTION:
+                    # Kiểm tra khi chuột di chuyển để cập nhật hover
+                    for i in range(len(self.settings)):
+                        y_offset = 200 + i * spacing  # Vị trí Y của từng ô
+                        if box_x <= mouse_x <= box_x + box_width and y_offset <= mouse_y <= y_offset + box_height:
+                            self.selected_index = i
+                            break  # Khi tìm thấy phần tử thi thoát vòng lặp
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = pygame.mouse.get_pos()
-                    y_offset = 200
+                    # Kiểm tra khi click chuột vào các ô
                     for i, (setting, value) in enumerate(self.settings):
-                        box_x = WINDOW_WIDTH // 2 - 300
-                        if box_x < x < box_x + 600 and y_offset < y < y_offset + 60:
+                        y_offset = 200 + i * spacing  # Vị trí Y của từng ô
+                        if box_x <= mouse_x <= box_x + box_width and y_offset <= mouse_y <= y_offset + box_height:
                             if setting in ["MUSIC", "SOUND EFFECTS"]:
+                                # Đảo trạng thái ON/OFF khi click vào MUSIC hoặc SOUND EFFECTS
                                 new_value = "OFF" if value == "ON" else "ON"
                                 self.settings[i] = (setting, new_value)
-                                game_settings[setting] = new_value
+                                game_settings[setting] = new_value  # Lưu trạng thái
                             elif setting == "BACK":
                                 return "menu"
-                        y_offset += 80
+                        y_offset += 80  # Dịch xuống dòng tiếp theo
+
+        return "settings"
+
 
 # Chạy thử menu
 # if __name__ == "__main__":

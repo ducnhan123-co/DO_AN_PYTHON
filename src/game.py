@@ -84,6 +84,7 @@ class Game:
         
         LaserPowerUp((randint(50, WINDOW_WIDTH - 50), randint(50, WINDOW_HEIGHT - 50)), 
                  (self.all_sprites, self.collision_sprites, self.powerups))
+    
     def create_bee(self):
         # Tạo một con Bee mới và thêm vào các nhóm sprite
         Bee(
@@ -92,7 +93,6 @@ class Game:
             groups=(self.all_sprites, self.enemy_sprites),
             speed=randint(250, 500)
         )
-
 
 #chưa dùng
     def create_bullet(self, pos, direction):

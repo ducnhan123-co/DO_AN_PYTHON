@@ -33,9 +33,14 @@ except pygame.error as e:
     background = None  
 
 # Tải Audio
+bg_sound = None
+channel = None  # Thêm biến channel để lưu kênh phát nhạc
 audio = import_audio('audio')
+
 if 'ni_idea' in audio:
-    audio['ni_idea'].play(loops=-1)
+    bg_sound = audio['ni_idea']
+    channel = bg_sound.play(loops=-1)  # Lưu channel khi phát nhạc
+    channel.set_volume(1.0)  # Đặt âm lượng mặc định
 
 # Khởi tạo biến toàn cục để xử lý lưu trạng thái ON/OFF của MainSettings
 game_settings = {
@@ -136,7 +141,7 @@ class TransitionScene:
 
 
 # Màn hình chính
-class GameMenu:
+class MainMenu:
     def __init__(self, selected_index=0, hover_index=0):
         self.transition = TransitionScene(screen)
         self.selected_index = selected_index  # Chỉ số nút được chọn bằng phím (trạng thái)
@@ -373,10 +378,20 @@ class MainSettings:
                         # Xử lý khi nhấn Enter để chọn setting
                         selected_option = self.settings[self.selected_index][0]
                         # Nếu chọn MUSIC hoặc SOUND EFFECTS, bật/tắt ON-OFF
-                        if selected_option in ["MUSIC", "SOUND EFFECTS"]:
+                        if selected_option == "MUSIC":
                             new_value = "OFF" if self.settings[self.selected_index][1] == "ON" else "ON"
                             self.settings[self.selected_index] = (selected_option, new_value)
                             game_settings[selected_option] = new_value  # Lưu lại trạng thái
+                            # Điều chỉnh âm lượng dựa trên trạng thái mới
+                            if bg_sound is not None and channel is not None:
+                                if new_value == "OFF":
+                                    channel.set_volume(0.0)  # Tắt nhạc
+                                else:
+                                    channel.set_volume(1.0)  # Bật nhạc
+                        elif selected_option == "SOUND EFFECTS":
+                            new_value = "OFF" if self.settings[self.selected_index][1] == "ON" else "ON"
+                            self.settings[self.selected_index] = (selected_option, new_value)
+                            game_settings[selected_option] = new_value
                         elif selected_option == "BACK":
                             return "menu"
 
@@ -393,15 +408,24 @@ class MainSettings:
                     for i, (setting, value) in enumerate(self.settings):
                         y_offset = 200 + i * spacing  # Vị trí Y của từng ô
                         if box_x <= mouse_x <= box_x + box_width and y_offset <= mouse_y <= y_offset + box_height:
-                            if setting in ["MUSIC", "SOUND EFFECTS"]:
+                            if setting == "MUSIC":
                                 # Đảo trạng thái ON/OFF khi click vào MUSIC hoặc SOUND EFFECTS
                                 new_value = "OFF" if value == "ON" else "ON"
                                 self.settings[i] = (setting, new_value)
-                                game_settings[setting] = new_value  # Lưu trạng thái
+                                game_settings[setting] = new_value  # Lưu lại trạng thái
+                                # Điều chỉnh âm lượng dựa trên trạng thái mới
+                                if bg_sound is not None and channel is not None:
+                                    if new_value == "OFF":
+                                        channel.set_volume(0.0)  # Tắt nhạc
+                                    else:
+                                        channel.set_volume(1.0)  # Bật nhạc
+                            elif setting == "SOUND EFFECTS":
+                                new_value = "OFF" if value == "ON" else "ON"
+                                self.settings[i] = (setting, new_value)
+                                game_settings[setting] = new_value
                             elif setting == "BACK":
                                 return "menu"
                         y_offset += 80  # Dịch xuống dòng tiếp theo
-
         return "settings"
 
 

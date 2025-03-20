@@ -14,7 +14,7 @@ def main():
 
     while True:
         if current_scene == "menu":
-            current_scene, selected_index, hover_index = GameMenu(selected_index, hover_index).run()  # Giữ hover
+            current_scene, selected_index, hover_index = MainMenu(selected_index, hover_index).run()  # Giữ hover
 
         elif current_scene == "play":
             pygame.mixer.stop()  # Dừng nhạc nền
@@ -23,7 +23,7 @@ def main():
             current_scene = "menu"  # Quay lại menu sau khi chơi xong
 
         elif current_scene == "settings":
-            settings = MainSettings(GameMenu().background) # Hiển thị settings
+            settings = MainSettings(MainMenu().background) # Hiển thị settings
             current_scene = settings.run()
 
         elif current_scene == "credits":

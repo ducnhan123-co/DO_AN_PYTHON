@@ -188,9 +188,10 @@ class Game:
             self.all_sprites.draw(self.player.rect.center)
             if self.player.laser_active:
                 self.player.draw_laser(self.display_surface)
-        
+            
             pygame.display.update()
-        pygame.quit()
+        return "exit"
+        # pygame.quit()
 
 # if __name__ == '__main__':
 #     while True:

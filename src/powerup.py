@@ -12,18 +12,15 @@ class PowerUp(pygame.sprite.Sprite):
         self.start_y = pos[1]
 
     def update(self, dt):
-        # Hiệu ứng lơ lửng
-        self.rect.y = self.start_y + math.sin(pygame.time.get_ticks() * 0.005) * 5
+        self.rect.y = self.start_y + math.sin(pygame.time.get_ticks() * 0.005) * 5  # Hiệu ứng lơ lửng
         
 class LaserPowerUp(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
         super().__init__(groups)
         self.image = pygame.Surface((30, 30), pygame.SRCALPHA)
-        # Vẽ hình tròn màu khác (ví dụ: màu cyan) để phân biệt
-        pygame.draw.circle(self.image, (0, 255, 255), (15, 15), 15)
+        pygame.draw.circle(self.image, (0, 255, 255), (15, 15), 15) # Vẽ hình tròn màu khác (ví dụ: màu cyan) để phân biệt
         self.rect = self.image.get_rect(center=pos)
         self.start_y = pos[1]
 
     def update(self, dt):
-        # Hiệu ứng lơ lửng tương tự
-        self.rect.y = self.start_y + math.sin(pygame.time.get_ticks() * 0.005) * 5
+        self.rect.y = self.start_y + math.sin(pygame.time.get_ticks() * 0.005) * 5 # Hiệu ứng lơ lửng tương tự

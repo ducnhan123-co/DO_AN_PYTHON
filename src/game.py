@@ -12,15 +12,12 @@ from random import randint
 
 class Game:
     def __init__(self):
-        # Khởi tạo Pygame và thiết lập màn hình hiển thị 
-        pygame.init()
+        pygame.init()  # Khởi tạo Pygame và thiết lập màn hình hiển thị 
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption('Platformer Space Runner')
         self.clock = pygame.time.Clock()
-        self.running = True
-
-        # Vị trí X của background
-        self.bg_x = 0  
+        self.running = True        
+        self.bg_x = 0  # Vị trí X của background
         self.bg_speed = 100  # Tốc độ di chuyển của background (pixel/giây)
 
         # Tạo các nhóm sprite,mấy cái nhân vật đồ

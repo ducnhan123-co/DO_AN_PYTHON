@@ -13,22 +13,23 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, pos, direction, groups, collision_sprites,game):
-        super().__init__(groups)
-        self.image = pygame.Surface((30, 10))
-        self.image.fill('blue')
-        self.rect = self.image.get_rect(center=pos)
-        self.direction = direction
-        self.speed = 600
-        self.game = game # Thêm tham chiếu đến đối tượng Game để truy cập enemy_sprites
-        self.collision_sprites = collision_sprites
-        self.rect.x += self.direction * 60 # Vị trí ban đầu (nếu muốn “nảy” ra xa nhân vật)
+    def __init__(self, bullet_surf, pos, direction, groups, collision_sprites, game):
+       super().__init__(groups)
+       self.image = bullet_surf
+       self.rect = self.image.get_rect(center=pos)
+       self.direction = direction
+       self.speed = 600
+       self.game = game
+       self.collision_sprites = collision_sprites
+       self.rect.x += self.direction * 60
 
     def update(self, dt):
         self.rect.x += self.direction * self.speed * dt # Di chuyển viên đạn
         # for sprite in self.collision_sprites: # Kiểm tra va chạm với vật cản (nếu có)
         #     if self.rect.colliderect(sprite.rect):
         #         self.kill()
+        if self.rect.right < 0 or self.rect.left > WINDOW_WIDTH:
+            self.kill()
 
         for enemy in self.game.enemy_sprites:
             if self.rect.colliderect(enemy.rect):
@@ -39,7 +40,7 @@ class Bullet(pygame.sprite.Sprite):
                     self.game.audio['impact'].play()
                 break  # Thoát vòng lặp sau khi trúng một quái vật
 
-        if self.rect.right < 0 or self.rect.left > WINDOW_WIDTH or self.rect.right > WINDOW_WIDTH: # Tự huỷ nếu ra ngoài màn hình
+        if self.rect.right < 0 or self.rect.left > WINDOW_WIDTH:  # Tự huỷ nếu ra ngoài màn hình
             self.kill()
 
 
@@ -47,6 +48,7 @@ class Fire(Sprite):
     def __init__(self, surf, pos, groups, player):
         super().__init__(pos, surf, groups)
         self.player = player
+        self.image=surf
         self.flip = player.flip
         self.timer = Timer(100, autostart=True, func=self.kill)
         self.y_offset = pygame.Vector2(0.8)
@@ -126,7 +128,7 @@ class Worm(Enemy):
             self.frames = [pygame.transform.flip(surf, True, False) for surf in self.frames]
 
 class Player(AnimatedSprite):
-    def __init__(self, pos, groups, collision_sprites, frames, game,audio):
+    def __init__(self, pos, groups, collision_sprites, frames, game,audio,bullet_surf,fire_surf):
         super().__init__(frames, pos, groups)
         self.game = game
         self.audio=audio
@@ -134,13 +136,14 @@ class Player(AnimatedSprite):
         self.direction = pygame.Vector2()
         self.collision_sprites = collision_sprites
         self.speed = 400
+        self.bullet_surf = bullet_surf
+        self.fire_surf = fire_surf  # Lưu fire_surf
         self.gravity = 50
         self.on_floor = False
         self.shoot_timer = Timer(500)
         self.can_shoot = False
         self.fall_timer = 0
         self.last_shot = 0
-
         self.laser_active = False
         self.laser_timer = None
 
@@ -148,7 +151,6 @@ class Player(AnimatedSprite):
         self.laser_active = True
         self.laser_timer = Timer(10000, func=self.deactivate_laser, autostart=True) # Bật hiệu ứng laser trong 5000ms (5 giây)
         
-
     def deactivate_laser(self):
         self.laser_active = False
 
@@ -172,12 +174,8 @@ class Player(AnimatedSprite):
     def check_laser_collision(self):
         if not self.laser_active:
             return
-
-        # Lấy offset từ camera
-        offset = self.game.all_sprites.offset
-
-        # Tọa độ laser trên màn hình
-        start_pos = (self.rect.centerx + offset.x, self.rect.centery + offset.y)
+        offset = self.game.all_sprites.offset # Lấy offset từ camera
+        start_pos = (self.rect.centerx + offset.x, self.rect.centery + offset.y) # Tọa độ laser trên màn hình
         mouse_pos = pygame.mouse.get_pos()
         dx = mouse_pos[0] - start_pos[0]
         dy = mouse_pos[1] - start_pos[1]
@@ -188,19 +186,13 @@ class Player(AnimatedSprite):
         dy /= length
         laser_length = 800  # Độ dài laser
         end_pos = (start_pos[0] + dx * laser_length, start_pos[1] + dy * laser_length)
-
-        # Kiểm tra va chạm với tất cả quái vật trong enemy_sprites
-        for enemy in self.game.enemy_sprites:
+        for enemy in self.game.enemy_sprites:  # Kiểm tra va chạm với tất cả quái vật trong enemy_sprites
             enemy_screen_rect = enemy.rect.copy() # Chuyển tọa độ của quái vật sang tọa độ màn hình
             enemy_screen_rect.topleft = (enemy.rect.x + offset.x, enemy.rect.y + offset.y)
             if enemy_screen_rect.clipline(start_pos, end_pos): # Kiểm tra xem laser có giao với hình chữ nhật của quái vật không
                 enemy.destroy()  # Gọi hàm destroy thay vì kill
                 if 'impact' in self.audio:# Nếu bạn muốn thêm âm thanh khi tiêu diệt
                     self.audio['impact'].play()
-
-
-
-
 
     def check_collision_with_powerup(self, powerups):
         collided_powerups = pygame.sprite.spritecollide(self, powerups, True)
@@ -209,8 +201,6 @@ class Player(AnimatedSprite):
                 self.activate_laser()
             else:
                 self.can_shoot = True
-
-    
 
     def inp(self):
         keys = pygame.key.get_pressed()
@@ -223,9 +213,16 @@ class Player(AnimatedSprite):
             self.last_shot = current_time
 
     def shoot(self):
-        bullet_direction = -1 if self.flip else 1
-        self.audio['shoot_2'].play()
-        Bullet(self.rect.center, bullet_direction, self.groups(),self.collision_sprites,self.game)
+        bullet_direction = -1 if self.flip else 1 # Xác định hướng bắn dựa trên trạng thái flip của nhân vật
+        pos = self.rect.center # Tính vị trí spawn của đạn dựa trên hướng (từ tâm nhân vật)
+        if bullet_direction == 1:
+            x = pos[0] 
+        else:
+            x = pos[0] - self.bullet_surf.get_width()
+        bullet_pos = (x, pos[1])
+        Bullet(self.bullet_surf, bullet_pos, bullet_direction, self.groups(), self.collision_sprites, self.game)# Tạo đạn
+        Fire(self.fire_surf, pos, self.groups(), self) # Tạo hiệu ứng lửa (nếu muốn)
+        self.audio['shoot'].play() # Phát âm thanh bắn
 
     def move(self, dt):
         self.rect.x += self.direction.x * self.speed * dt  # Di chuyển theo trục x

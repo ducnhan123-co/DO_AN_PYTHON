@@ -19,112 +19,92 @@ class Game:
         self.running = True        
         self.bg_x = 0  # Vị trí X của background
         self.bg_speed = 100  # Tốc độ di chuyển của background (pixel/giây)
-
-        # Tạo các nhóm sprite,mấy cái nhân vật đồ
-        self.all_sprites = AllSprites()
+        self.all_sprites = AllSprites() # Tạo các nhóm sprite,mấy cái nhân vật đồ
         self.collision_sprites = pygame.sprite.Group()
         self.bullet_sprites  = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
-
-        # Set up tài nguyên để chạy game
-        self.load_assets()
+        self.load_assets()  # Set up tài nguyên để chạy game
         self.setup()
+        self.bee_timer = Timer(1500, func=self.create_bee, autostart=True, repeat=True)  # Tạo bộ đếm thời gian để canh chỉnh thơi gian ong respawn
 
-        # Tạo bộ đếm thời gian để canh chỉnh thơi gian ong respawn
-        self.bee_timer = Timer(1000, func=self.create_bee, autostart=True, repeat=True)
-
-    def load_assets(self):
-        # Tải các tài nguyên đồ họa
+    def load_assets(self): # Tải các tài nguyên đồ họa
         self.player_frames = import_folder('images', 'player')
         self.bullet_surf = import_image('images', 'gun', 'bullet')
         self.fire_surf = import_image('images', 'gun', 'fire')
-        self.bee_frames = import_folder('images', 'enemies', 'bee')
+        self.bee_frames = import_folder('images', 'enemies', 'bee') 
         self.worm_frames = import_folder('images', 'enemies', 'worm')
-        # Tải hình nền
-        self.background = pygame.image.load('data/graphics/Summer2.png').convert() #hình nên chính khi chơi
+        self.background = pygame.image.load('data/graphics/Summer2.png').convert() #hình nên chính khi chơi  # Tải hình nền
         self.background = pygame.transform.scale(self.background, (WINDOW_WIDTH, WINDOW_HEIGHT))
         self.display_surface.blit(self.background, (0, 0))  # Vẽ background cố định
         self.game_over_bg = pygame.image.load('data/graphics/tilesetOpenGameBackground.png').convert() #hình nền khi thua :))
-
-        # Tải âm thanh chính
-        self.audio = import_audio('audio')
+        self.audio = import_audio('audio') # Tải âm thanh chính
         if 'game_menu' in self.audio:
             self.audio['game_menu'].stop()
-        # Phát nhạc cho game
-        self.audio['music'].play(loops=-1)
+        self.audio['music'].play(loops=-1) # Phát nhạc cho game
 
     def setup(self):
-        # Tải bản đồ và tính toán kích thước level
-        tmx_map = load_pygame(join('data','maps', 'new_world_3.tmx'))
+        tmx_map = load_pygame(join('data','maps', 'new_world_3.tmx')) # Tải bản đồ và tính toán kích thước level
         self.level_width = TILE_SIZE * tmx_map.width
         self.level_height = TILE_SIZE * tmx_map.height
 
-        # Tạo các tile từ layer Main (gạch,sàn có xử lý đụng độ)
-        for x, y, image in tmx_map.get_layer_by_name('Main').tiles():
+        for x, y, image in tmx_map.get_layer_by_name('Main').tiles(): # Tạo các tile từ layer Main (gạch,sàn có xử lý đụng độ)
             Sprite((x * TILE_SIZE, y * TILE_SIZE), image, (self.all_sprites, self.collision_sprites))
         
-        # Tạo các đối tượng từ layer Decoration ,đi xuyên qua được (cho đẹp thôi)
-        for x, y, image in tmx_map.get_layer_by_name('Decoration').tiles():
+        for x, y, image in tmx_map.get_layer_by_name('Decoration').tiles(): # Tạo các đối tượng từ layer Decoration ,đi xuyên qua được (cho đẹp thôi)
             Sprite((x * TILE_SIZE, y * TILE_SIZE), image, self.all_sprites)
         
-        # Tạo các đối tượng từ layer Entities: Player và Worm 
+       
         for obj in tmx_map.get_layer_by_name('Entities'): #nhân vật chính game
-            if obj.name == 'Player':
-                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames, self,self.audio)
+            if obj.name == 'Player': # Tạo các đối tượng từ layer Entities: Player và Worm 
+                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames, self,self.audio,self.bullet_surf,self.fire_surf)
             elif obj.name == 'Worm': #mấy con quái
                 Worm(self.worm_frames, pygame.Rect(obj.x, obj.y, obj.width, obj.height), (self.all_sprites, self.enemy_sprites))
         
-        # Sinh ra một năng lực ngẫu nhiên chạm vào là biến mất và bắn bằng SPACE được
-        PowerUp((randint(50, WINDOW_WIDTH - 50), randint(50, WINDOW_HEIGHT - 50)), 
+
+        PowerUp((randint(50, WINDOW_WIDTH - 50), randint(50, WINDOW_HEIGHT - 50)), # Sinh ra một năng lực ngẫu nhiên chạm vào là biến mất và bắn bằng SPACE được
                 (self.all_sprites, self.collision_sprites, self.powerups))
         
         LaserPowerUp((randint(50, WINDOW_WIDTH - 50), randint(50, WINDOW_HEIGHT - 50)), 
                  (self.all_sprites, self.collision_sprites, self.powerups))
     
     def create_bee(self):
-        # Tạo một con Bee mới và thêm vào các nhóm sprite
-        Bee(
+    
+        Bee( # Tạo một con Bee mới và thêm vào các nhóm sprite
             frames=self.bee_frames,
             pos=(self.level_width + WINDOW_WIDTH, randint(0, self.level_height)),
             groups=(self.all_sprites, self.enemy_sprites),
-            speed=randint(250, 500)
+            speed=200
         )
 
 #chưa dùng
     def create_bullet(self, pos, direction):
-        # Tính vị trí spawn của đạn dựa theo hướng
-        if direction == 1:
+        if direction == 1: # Tính vị trí spawn của đạn dựa theo hướng
             x = pos[0] + 34
         else:
             x = pos[0] - 34 - self.bullet_surf.get_width()
-        # Tạo đạn và hiệu ứng lửa, phát âm thanh bắn
-        Bullet(self.bullet_surf, (x, pos[1]), direction, (self.all_sprites, self.bullet_sprites))
+        Bullet(self.bullet_surf, (x, pos[1]), direction, (self.all_sprites, self.bullet_sprites)) # Tạo đạn và hiệu ứng lửa, phát âm thanh bắn
         Fire(self.fire_surf, pos, self.all_sprites, self.player)
         self.audio['shoot'].play()
 
 
     def collision(self):
-        # Xử lý va chạm giữa đạn và kẻ thù
         for bullet in self.bullet_sprites:
-            hits = pygame.sprite.spritecollide(bullet, self.enemy_sprites, False, pygame.sprite.collide_mask)
+            hits = pygame.sprite.spritecollide(bullet, self.enemy_sprites, False, pygame.sprite.collide_mask) # Xử lý va chạm giữa đạn và kẻ thù
             if hits:
                 self.audio['impact'].play()
                 bullet.kill()
                 for hit in hits:
                     hit.destroy()
         
-        # Nếu người chơi va chạm với kẻ thù -> game over
-        if pygame.sprite.spritecollide(self.player, self.enemy_sprites, False, pygame.sprite.collide_mask):
+        if pygame.sprite.spritecollide(self.player, self.enemy_sprites, False, pygame.sprite.collide_mask): # Nếu người chơi va chạm với kẻ thù -> game over
             self.game_over()
 
     def game_over(self):
         print("Game Over!")
-        # Dừng nhạc nền
-        if 'music' in self.audio:
+        if 'music' in self.audio: # Dừng nhạc nền
             self.audio['music'].stop()
-        # Phát nhạc game over
-        if 'prank' in self.audio:
+        if 'prank' in self.audio: # Phát nhạc game over
             self.audio['prank'].play(loops=-1)
         else:
             try:
@@ -132,8 +112,7 @@ class Game:
                 game_over_sound.play(loops=-1)
             except Exception as e:
                 print(f"Lỗi phát nhạc game over: {e}")
-        # Hiển thị ảnh game over với hiệu ứng rung
-        prank_image = pygame.transform.scale(self.game_over_bg, (WINDOW_WIDTH-100, WINDOW_HEIGHT-100))
+        prank_image = pygame.transform.scale(self.game_over_bg, (WINDOW_WIDTH-100, WINDOW_HEIGHT-100)) # Hiển thị ảnh game over với hiệu ứng rung
         center_x = (WINDOW_WIDTH // 2) - (prank_image.get_width() // 2)
         center_y = (WINDOW_HEIGHT // 2) - (prank_image.get_height() // 2)
         for _ in range(15):
@@ -154,35 +133,24 @@ class Game:
         self.running = False
 
     def run(self):
-        # Vòng lặp chính của game
-        while self.running:
+        while self.running: # Vòng lặp chính của game
             dt = self.clock.tick(FRAMERATE) / 1000
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-            # Cập nhật bộ đếm thời gian và các sprite
-            self.bee_timer.update()
+            self.bee_timer.update() # Cập nhật bộ đếm thời gian và các sprite
             self.all_sprites.update(dt)
             self.collision()
-            # Vẽ background
-            if self.background:
+            if self.background: # Vẽ background
                 self.display_surface.blit(self.background, (0, 0))
             else:
                 self.display_surface.fill(BG_COLOR)
-
-            # Cập nhật vị trí background
-            self.bg_x -= self.bg_speed * dt  
-
-            # Nếu background cuộn hết, reset lại vị trí
-            if self.bg_x <= -WINDOW_WIDTH:
+            self.bg_x -= self.bg_speed * dt   # Cập nhật vị trí background
+            if self.bg_x <= -WINDOW_WIDTH: # Nếu background cuộn hết, reset lại vị trí
                 self.bg_x = 0  
-
-            # Vẽ background (lặp lại background để tạo hiệu ứng vô hạn)
-            self.display_surface.blit(self.background, (self.bg_x, 0))
+            self.display_surface.blit(self.background, (self.bg_x, 0)) # Vẽ background (lặp lại background để tạo hiệu ứng vô hạn)
             self.display_surface.blit(self.background, (self.bg_x + WINDOW_WIDTH, 0))  # Background lặp lại
-
-            # Vẽ tất cả các sprite
-            self.all_sprites.draw(self.player.rect.center)
+            self.all_sprites.draw(self.player.rect.center) # Vẽ tất cả các sprite
             if self.player.laser_active:
                 self.player.draw_laser(self.display_surface)
             
